@@ -1,5 +1,6 @@
 package com.data_management;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +22,14 @@ public class DataStorage {
      */
     public DataStorage() {
         this.patientMap = new HashMap<>();
+    }
+    public DataStorage(DataReader reader) {
+        this.patientMap = new HashMap<>();
+        try {
+            reader.readData(this); // This allows the reader to load data into this storage
+        } catch (IOException e) {
+            e.printStackTrace(); // or handle this more cleanly depending on your needs
+        }
     }
 
     /**
