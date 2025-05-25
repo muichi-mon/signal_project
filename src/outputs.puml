@@ -1,0 +1,50 @@
+@startuml
+' Package declaration for clarity
+package com.cardio_generator.outputs {
+
+  interface OutputStrategy {
+    +output(patientId: int, timestamp: long, label: String, data: String): void
+  }
+
+  class ConsoleOutputStrategy {
+    +output(patientId: int, timestamp: long, label: String, data: String): void
+  }
+
+  class FileOutputStrategy {
+    -baseDirectory: String
+    -filemap: ConcurrentHashMap<String, String>
+    +FileOutputStrategy(baseDirectory: String)
+    +output(patientId: int, timestamp: long, label: String, data: String): void
+  }
+
+  class TcpOutputStrategy {
+    -serverSocket: ServerSocket
+    -clientSocket: Socket
+    -out: PrintWriter
+    +TcpOutputStrategy(port: int)
+    +output(patientId: int, timestamp: long, label: String, data: String): void
+  }
+
+  class WebSocketOutputStrategy {
+    -server: WebSocketServer
+    +WebSocketOutputStrategy(port: int)
+    +output(patientId: int, timestamp: long, label: String, data: String): void
+  }
+
+  class WebSocketOutputStrategy::SimpleWebSocketServer {
+    +onOpen(conn, handshake)
+    +onClose(conn, code, reason, remote)
+    +onMessage(conn, message)
+    +onError(conn, ex)
+    +onStart()
+  }
+
+  OutputStrategy <|.. ConsoleOutputStrategy
+  OutputStrategy <|.. FileOutputStrategy
+  OutputStrategy <|.. TcpOutputStrategy
+  OutputStrategy <|.. WebSocketOutputStrategy
+
+  WebSocketOutputStrategy *-- SimpleWebSocketServer : uses
+
+}
+@enduml

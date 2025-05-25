@@ -1,0 +1,54 @@
+@startuml
+
+package com.cardio_generator {
+  class HealthDataSimulator {
+    - patientCount: int
+    - scheduler: ScheduledExecutorService
+    - outputStrategy: OutputStrategy
+    - random: Random
+    + main(args: String[]): void
+    - parseArguments(args: String[]): void
+    - printHelp(): void
+    - initializePatientIds(patientCount: int): List<Integer>
+    - scheduleTasksForPatients(patientIds: List<Integer>, dataStorage: DataStorage, patientCount: int): void
+    - scheduleTask(task: Runnable, period: long, timeUnit: TimeUnit): void
+  }
+
+  class DataStorage
+  class Patient
+  class AlertGenerator
+
+  HealthDataSimulator --> DataStorage
+  HealthDataSimulator --> AlertGenerator
+  HealthDataSimulator --> Patient
+}
+
+package com.cardio_generator.generators {
+  class ECGDataGenerator
+  class BloodSaturationDataGenerator
+  class BloodPressureDataGenerator
+  class BloodLevelsDataGenerator
+}
+
+package com.cardio_generator.outputs {
+  interface OutputStrategy
+  class ConsoleOutputStrategy
+  class FileOutputStrategy
+  class WebSocketOutputStrategy
+  class TcpOutputStrategy
+}
+
+' Relationships from HealthDataSimulator to generators and outputs packages
+com.cardio_generator.HealthDataSimulator ..> com.cardio_generator.generators.ECGDataGenerator : uses
+com.cardio_generator.HealthDataSimulator ..> com.cardio_generator.generators.BloodSaturationDataGenerator : uses
+com.cardio_generator.HealthDataSimulator ..> com.cardio_generator.generators.BloodPressureDataGenerator : uses
+com.cardio_generator.HealthDataSimulator ..> com.cardio_generator.generators.BloodLevelsDataGenerator : uses
+
+com.cardio_generator.HealthDataSimulator ..> com.cardio_generator.outputs.OutputStrategy : uses
+com.cardio_generator.outputs.OutputStrategy <|.. com.cardio_generator.outputs.ConsoleOutputStrategy
+com.cardio_generator.outputs.OutputStrategy <|.. com.cardio_generator.outputs.FileOutputStrategy
+com.cardio_generator.outputs.OutputStrategy <|.. com.cardio_generator.outputs.WebSocketOutputStrategy
+com.cardio_generator.outputs.OutputStrategy <|.. com.cardio_generator.outputs.TcpOutputStrategy
+
+@enduml
+

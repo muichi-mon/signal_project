@@ -1,0 +1,31 @@
+@startuml
+package com.alerts {
+
+    class Alert {
+        - patientId: int
+        - alertType: String
+        - message: String
+        - timestamp: long
+        + getPatientId(): int
+        + getAlertType(): String
+        + getMessage(): String
+        + getTimestamp(): long
+        + toString(): String
+    }
+
+    class AlertGenerator {
+        - dataStorage: DataStorage
+        + AlertGenerator(dataStorage: DataStorage)
+        + evaluateData(patient: Patient): List<Alert>
+        - checkHeartRate(patient: Patient): Optional<Alert>
+        - checkBloodPressure(patient: Patient): Optional<Alert>
+        - checkRespiratoryRate(patient: Patient): Optional<Alert>
+        - checkOxygenSaturation(patient: Patient): Optional<Alert>
+        - checkWhiteBloodCells(patient: Patient): Optional<Alert>
+    }
+
+    AlertGenerator --> Alert : creates
+    AlertGenerator --> Patient
+    AlertGenerator --> DataStorage
+}
+@enduml

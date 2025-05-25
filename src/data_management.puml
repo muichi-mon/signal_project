@@ -1,0 +1,57 @@
+@startuml
+
+package com.data_management {
+
+  interface DataReader {
+    + readData(dataStorage: DataStorage): void
+  }
+
+  class FileDataReader {
+    - directoryPath: String
+    + FileDataReader(directoryPath: String)
+    + readData(dataStorage: DataStorage): void
+  }
+
+  class WebSocketDataReader {
+    - serverUri: URI
+    + WebSocketDataReader(serverUri: String)
+    + readData(dataStorage: DataStorage): void
+  }
+
+  class DataStorage {
+    - patientMap: Map<Integer, Patient>
+    + addPatientData(...)
+    + getRecords(...)
+    + getAllPatients(): List<Patient>
+    + getPatient(int): Patient
+  }
+
+  class Patient {
+    - patientId: int
+    - patientRecords: List<PatientRecord>
+    + addRecord(...)
+    + getRecords(startTime: long, endTime: long): List<PatientRecord>
+    + getPatientId(): int
+  }
+
+  class PatientRecord {
+    - patientId: int
+    - recordType: String
+    - measurementValue: double
+    - timestamp: long
+    + getPatientId(): int
+    + getRecordType(): String
+    + getMeasurementValue(): double
+    + getTimestamp(): long
+  }
+
+  ' Relationships
+  DataReader <|.. FileDataReader
+  DataReader <|.. WebSocketDataReader
+
+  DataStorage --> Patient
+  DataStorage --> DataReader
+  Patient --> PatientRecord
+}
+
+@enduml

@@ -1,0 +1,56 @@
+@startuml
+package com.cardio_generator.generators {
+
+    interface PatientDataGenerator {
+        + generate(patientId : int, outputStrategy : OutputStrategy) : void
+    }
+
+    class ECGDataGenerator {
+        - lastEcgValues : double[]
+        + ECGDataGenerator(patientCount : int)
+        + generate(patientId : int, outputStrategy : OutputStrategy) : void
+        - simulateEcgWaveform(patientId : int, lastEcgValue : double) : double
+    }
+
+    class BloodSaturationDataGenerator {
+        - lastSaturationValues : int[]
+        + BloodSaturationDataGenerator(patientCount : int)
+        + generate(patientId : int, outputStrategy : OutputStrategy) : void
+    }
+
+    class BloodPressureDataGenerator {
+        - lastSystolicValues : int[]
+        - lastDiastolicValues : int[]
+        + BloodPressureDataGenerator(patientCount : int)
+        + generate(patientId : int, outputStrategy : OutputStrategy) : void
+    }
+
+    class BloodLevelsDataGenerator {
+        - baselineCholesterol : double[]
+        - baselineWhiteCells : double[]
+        - baselineRedCells : double[]
+        + BloodLevelsDataGenerator(patientCount : int)
+        + generate(patientId : int, outputStrategy : OutputStrategy) : void
+    }
+
+    class AlertGenerator {
+        - alertStates : boolean[]
+        + AlertGenerator(patientCount : int)
+        + generate(patientId : int, outputStrategy : OutputStrategy) : void
+    }
+
+    PatientDataGenerator <|.. ECGDataGenerator
+    PatientDataGenerator <|.. BloodSaturationDataGenerator
+    PatientDataGenerator <|.. BloodPressureDataGenerator
+    PatientDataGenerator <|.. BloodLevelsDataGenerator
+    PatientDataGenerator <|.. AlertGenerator
+}
+
+package com.cardio_generator.outputs {
+    interface OutputStrategy {
+        + output(patientId : int, timestamp : long, type : String, value : String) : void
+    }
+}
+
+com.cardio_generator.generators..>com.cardio_generator.outputs.OutputStrategy : uses
+@enduml

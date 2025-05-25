@@ -1,0 +1,21 @@
+@startuml
+package com.network {
+    class PatientWebSocketClient {
+        - dataStorage : DataStorage
+        + PatientWebSocketClient(serverUri : String, dataStorage : DataStorage)
+        + onOpen(handshake : ServerHandshake) : void
+        + onMessage(message : String) : void
+        + onClose(code : int, reason : String, remote : boolean) : void
+        + onError(ex : Exception) : void
+        - reconnectWithBackoff(seconds : int) : void
+    }
+}
+
+package com.data_management {
+    class DataStorage {
+        + addPatientData(patientId : int, measurementValue : double, recordType : String, timestamp : long) : void
+    }
+}
+
+PatientWebSocketClient --> DataStorage : uses
+@enduml
