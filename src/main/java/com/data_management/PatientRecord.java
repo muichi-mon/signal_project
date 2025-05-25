@@ -68,3 +68,6 @@ public class PatientRecord {
         return recordType;
     }
 }
+
+// PatientRecord: Represents an individual data point output by the HealthDataSimulator.
+// Each record corresponds to a single observation or measurement related to a patient, such as heart rate or blood pressure readings.

@@ -4,8 +4,16 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import com.cardio_generator.generators.*;
+import com.alerts.AlertGenerator;
+import com.cardio_generator.generators.BloodLevelsDataGenerator;
+import com.cardio_generator.generators.BloodPressureDataGenerator;
+import com.cardio_generator.generators.BloodSaturationDataGenerator;
+import com.cardio_generator.generators.ECGDataGenerator;
 import com.cardio_generator.outputs.*;
+import com.data_management.DataReader;
+import com.data_management.DataStorage;
+import com.data_management.Patient;
+import com.data_management.WebSocketDataReader;
 
 import java.util.Collections;
 import java.util.List;
@@ -56,15 +64,30 @@ public class HealthDataSimulator {
      * @param args Command-line arguments for patient count and output type.
      * @throws IOException If directory or file creation fails.
      */
-    public static void main(String[] args) throws IOException {
-        parseArguments(args);
-        scheduler = Executors.newScheduledThreadPool(patientCount * 4);
+    public static void main(String[] args) {
+        // Connect to simulator's WebSocket output
+        String websocketUrl = "ws://localhost:8080"; // Same port used by the simulator
+        DataReader reader = new WebSocketDataReader(websocketUrl);
+        DataStorage storage = new DataStorage(reader); // Load initial data
 
-        List<Integer> patientIds = initializePatientIds(patientCount);
-        Collections.shuffle(patientIds); // Randomize patient order
+        // Start analyzing new incoming data as it's received
+        AlertGenerator alertGenerator = new AlertGenerator(storage);
 
-        scheduleTasksForPatients(patientIds);
+        // Periodically evaluate patients (every 10 seconds)
+        new Thread(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(10000); // Wait 10 seconds
+                    for (Patient patient : storage.getAllPatients()) {
+                        alertGenerator.evaluateData(patient);
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
+
 
     /**
      * Parses command-line arguments for patient count and output strategy.
@@ -161,21 +184,25 @@ public class HealthDataSimulator {
      *
      * @param patientIds List of patient IDs to simulate.
      */
-    private static void scheduleTasksForPatients(List<Integer> patientIds) {
+    private static void scheduleTasksForPatients(List<Integer> patientIds, DataStorage dataStorage, int patientCount) {
         ECGDataGenerator ecgDataGenerator = new ECGDataGenerator(patientCount);
         BloodSaturationDataGenerator bloodSaturationDataGenerator = new BloodSaturationDataGenerator(patientCount);
         BloodPressureDataGenerator bloodPressureDataGenerator = new BloodPressureDataGenerator(patientCount);
         BloodLevelsDataGenerator bloodLevelsDataGenerator = new BloodLevelsDataGenerator(patientCount);
-        AlertGenerator alertGenerator = new AlertGenerator(patientCount);
+        AlertGenerator alertGenerator = new AlertGenerator(dataStorage);
 
         for (int patientId : patientIds) {
             scheduleTask(() -> ecgDataGenerator.generate(patientId, outputStrategy), 1, TimeUnit.SECONDS);
             scheduleTask(() -> bloodSaturationDataGenerator.generate(patientId, outputStrategy), 1, TimeUnit.SECONDS);
             scheduleTask(() -> bloodPressureDataGenerator.generate(patientId, outputStrategy), 1, TimeUnit.MINUTES);
             scheduleTask(() -> bloodLevelsDataGenerator.generate(patientId, outputStrategy), 2, TimeUnit.MINUTES);
-            scheduleTask(() -> alertGenerator.generate(patientId, outputStrategy), 20, TimeUnit.SECONDS);
+            scheduleTask(() -> {
+                Patient patient = dataStorage.getPatient(patientId);
+                alertGenerator.evaluateData(patient);
+            }, 20, TimeUnit.SECONDS);
         }
     }
+
 
     /**
      * Schedules a recurring task with an initial random delay to avoid uniform timing.

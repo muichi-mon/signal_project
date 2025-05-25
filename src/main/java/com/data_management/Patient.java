@@ -25,6 +25,15 @@ public class Patient {
     }
 
     /**
+     * Returns the unique identifier for this patient.
+     *
+     * @return the patient's ID
+     */
+    public int getPatientId() {
+        return this.patientId;
+    }
+
+    /**
      * Adds a new record to this patient's list of medical records.
      * The record is created with the specified measurement value, record type, and
      * timestamp.
@@ -52,7 +61,17 @@ public class Patient {
      *         range
      */
     public List<PatientRecord> getRecords(long startTime, long endTime) {
-        // TODO Implement and test this method
-        return List.of();
+        List<PatientRecord> filteredRecords = new ArrayList<>();
+        for (PatientRecord record : this.patientRecords) {
+            if (record.getTimestamp() >= startTime && record.getTimestamp() <= endTime) {
+                filteredRecords.add(record);
+            }
+        }
+        return filteredRecords;
     }
+
 }
+
+
+//Patient: Represents a single patient and contains all data collected for that patient.
+// It serves as a container for multiple PatientRecord instances, correlating all related data to a specific patient.

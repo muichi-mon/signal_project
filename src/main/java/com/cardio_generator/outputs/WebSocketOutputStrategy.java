@@ -17,12 +17,21 @@ public class WebSocketOutputStrategy implements OutputStrategy {
 
     @Override
     public void output(int patientId, long timestamp, String label, String data) {
+        if (label == null || data == null) {
+            System.err.println("Invalid output: null label or data");
+            return;
+        }
         String message = String.format("%d,%d,%s,%s", patientId, timestamp, label, data);
-        // Broadcast the message to all connected clients
         for (WebSocket conn : server.getConnections()) {
-            conn.send(message);
+            try {
+                conn.send(message);
+            } catch (Exception e) {
+                System.err.println("Failed to send message to client: " + conn.getRemoteSocketAddress());
+                e.printStackTrace();
+            }
         }
     }
+
 
     private static class SimpleWebSocketServer extends WebSocketServer {
 

@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import com.alerts.AlertGenerator;
 
 /**
@@ -14,7 +16,8 @@ import com.alerts.AlertGenerator;
  * patient IDs.
  */
 public class DataStorage {
-    private Map<Integer, Patient> patientMap; // Stores patient objects indexed by their unique patient ID.
+
+    private Map<Integer, Patient> patientMap = new ConcurrentHashMap<>(); // Stores patient objects indexed by their unique patient ID.
 
     /**
      * Constructs a new instance of DataStorage, initializing the underlying storage
@@ -46,13 +49,14 @@ public class DataStorage {
      *                         milliseconds since the Unix epoch
      */
     public void addPatientData(int patientId, double measurementValue, String recordType, long timestamp) {
+        patientMap.computeIfAbsent(patientId, id -> new Patient(patientId));
         Patient patient = patientMap.get(patientId);
-        if (patient == null) {
-            patient = new Patient(patientId);
-            patientMap.put(patientId, patient);
+
+        synchronized (patient) {
+            patient.addRecord(measurementValue, recordType, timestamp);
         }
-        patient.addRecord(measurementValue, recordType, timestamp);
     }
+
 
     /**
      * Retrieves a list of PatientRecord objects for a specific patient, filtered by
@@ -83,6 +87,11 @@ public class DataStorage {
     public List<Patient> getAllPatients() {
         return new ArrayList<>(patientMap.values());
     }
+
+    public Patient getPatient(int patientId) {
+        return patientMap.get(patientId);
+    }
+
 
     /**
      * The main method for the DataStorage class.
@@ -118,3 +127,6 @@ public class DataStorage {
         }
     }
 }
+
+// DataStorage: Acts as the primary repository and manager of patient records.
+// This class is responsible for keeping track of all patient data and provides the functionalities necessary to add, retrieve, and manage patient records.
